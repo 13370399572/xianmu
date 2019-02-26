@@ -1,0 +1,231 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">閰嶇疆绠＄悊</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="鍙傛暟鍚�">
+					
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							
+							<button type="button" 
+							class="btn btn-default btn-delete">鍒犻櫎</button>
+							<button type="button" class="btn btn-default btn-add">娣诲姞</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<form>
+				  <table class="table table-hover">
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="checkAll">鍏ㄩ��</th>
+							<th>鍙傛暟鍚�</th>
+							<th>鍙傛暟鍊�</th>
+							<th>鍒涘缓鏃ユ湡</th>
+							<th>淇敼鏃ユ湡</th>
+							<th>鎿嶄綔</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+					</tbody>
+				  </table>
+				</form>
+			</div>
+			<!-- /.box-body -->
+			<div id="pageId" class="box-footer clearfix">
+             
+            </div>
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+   $(function(){
+	   $("#pageId").load("doPageUI.do",function(){
+		   doGetObjects();
+		   
+	   });
+	   //鏌ヨ,鍒犻櫎,娣诲姞鎸夐挳浜嬩欢娉ㄥ唽
+	   $(".input-group-btn")
+	   .on("click",".btn-search",doQueryObjects)
+	   .on("click",".btn-delete",doDeleteObjects)
+	   .on("click",".btn-add",doShowEditDialog)
+	   //thead涓殑鍏ㄩ�夋寜閽簨浠舵敞鍐�(change浜嬩欢)
+       $("thead")
+	   .on("change","#checkAll",doCheckAll);
+	   //$("#checkAll").change(doCheckAll);
+	   //tbody涓璫heckbox瀵硅薄浜嬩欢娉ㄥ唽
+       $("#tbodyId")
+	   .on("change",".cBox",doChangeCheckAllState)
+	   .on("click",".btn-update",doShowEditDialog);
+	   //璇存槑:閲囩敤on鏂规硶娉ㄥ唽浜嬩欢,鍏佽on鏂规硶鍐呴儴鐨勫厓绱犳殏鏃朵笉瀛樺湪
+   });
+   function doShowEditDialog(){
+	   var url="config/doConfigEditUI.do";
+	   
+	   var title;
+	   if($(this).hasClass("btn-add")){
+		   title="娣诲姞閰嶇疆淇℃伅"
+	   }else{
+		   title="淇敼閰嶇疆淇℃伅";
+		   //鑾峰彇褰撳墠琛岀殑鏁版嵁
+		   var rowData=
+		   $(this).parents("tr").data("rowData");
+		   //灏嗘暟鎹粦瀹氬綋鍓嶆ā鎬佹涓�
+		   $("#myModal").data("rowData",rowData);
+	   }
+	   //鍦ㄦā鎬佹鐨勬寚瀹氫綅缃紓姝ュ姞杞界紪杈戦〉闈�
+	   $("#myModal .modal-body")
+	   .load(url,function(){
+		 //璁剧疆妯℃�佹鐨勬爣棰�
+		 $("#myModalLabel").html(title);
+		 //椤甸潰鍔犺浇瀹屾垚鏄剧ず妯℃�佹
+	     $("#myModal").modal("show");
+	   })
+   }
+   
+   //鎵ц鍒犻櫎鎿嶄綔
+   function doDeleteObjects(){
+	  //1.鑾峰緱鎵�鏈夐�変腑checkbox鐨勭姸鎬佸��.
+	  var array=doGetCheckedIds();
+	  //2.鍒ゅ畾鏄惁鏈夊��,娌℃湁鍊煎垯缁欏嚭鎻愮ず
+	  if(array.length==0){
+		  alert("璇峰厛閫変腑");
+		  return;
+	  }
+	  //3.寮傛鎻愪氦瑕佸垹闄ょ殑瀵硅薄id鍊�,骞跺鐞嗗搷搴旂粨鏋�
+      var url="config/doDeleteObjects.do";
+      var params={ids:array.toString()}//1,2,3,4,5
+	  $.post(url,params,function(result){
+		  if(result.state==1){
+			  alert(result.message);
+			  doGetObjects();
+		  }else{
+			  alert(result.message);
+		  }
+	  });
+   }
+   function doGetCheckedIds(){
+	   //1.瀹氫箟鏁扮粍鐢ㄤ簬瀛樺偍閫変腑鐨刢heckbox鐨勫��
+	   var array=[];
+	   //2.杩唬鎵�鏈塼body涓璫heckbox瀵硅薄骞惰幏鍙栭�変腑鐨勫��
+	   $("#tbodyId input[type=checkbox]")
+	   .each(function(){
+		   if($(this).prop("checked")){
+			  array.push($(this).val());
+		   }
+	   });
+	   //3.杩斿洖閫変腑鐨勫��.
+	   return array;
+   }
+   
+   function doChangeCheckAllState(){
+	   //1.鑾峰彇tbody涓墍鏈塩heckbox瀵硅薄鐘舵�佽繘琛屼笌鎿嶄綔鐨勭粨鏋�
+	   var flag=true;
+	   $("#tbodyId input[type=checkbox]")
+	   .each(function(){
+		   flag=flag&&$(this).prop("checked")
+	   });
+	   //2.灏唗body涓璫heckbox鏈�缁堜笌鐘舵�佺殑缁撴灉褰卞搷thead涓璫heckbox鐨勭姸鎬�.
+	   $("#checkAll").prop("checked",flag);
+   }
+   
+   function doCheckAll(){
+	 //1.鑾峰緱鐐瑰嚮瀵硅薄(鍏ㄩ�夌殑checkbox)鐨刢hecked灞炴�у��
+	 var flag=$(this).prop("checked");
+	 //2.璁╁叏閫夊璞＄殑鐘舵�佸�煎奖鍝峵body涓璫heckbox鐨勭姸鎬佸��.
+    /*$("#tbodyId input[type=checkbox]")
+     .each(function(){
+    	 $(this).prop("checked",flag);
+     }); */
+     
+     $("#tbodyId input[type=checkbox]")
+     .prop("checked",flag);
+   }
+   
+   //鐐瑰嚮鏌ヨ鎸夐挳鏃舵墽琛屾鏂规硶
+   function doQueryObjects(){
+	   //姣忔鏌ヨ鏃堕噸鏂板垵濮嬪寲椤电爜鍊笺��
+	   $("#pageId").data("pageCurrent",1);
+	   doGetObjects();
+   }
+   //鍩轰簬椤电爜鑾峰彇褰撳墠椤垫暟鎹俊鎭�
+   function doGetObjects(){
+	   //1.璇锋眰鍙傛暟
+	   //鑾峰彇鏌ヨ鐨勯〉鐮佸��
+	   var pageCurrent=$("#pageId").data("pageCurrent");
+	   console.log("pageCurrent="+pageCurrent)
+	   if(!pageCurrent)pageCurrent=1;
+	   var params={"pageCurrent":pageCurrent}
+	   //鑾峰彇鏌ヨ鏃剁敤鎴疯緭鍏ョ殑鍙傛暟鍚�
+	   var name=$("#searchNameId").val();
+	   if(name)params.name=name;
+	   
+	   console.log(params);//pageCurrent=1
+	   //2.璇锋眰url
+	   var url="config/doFindPageObjects.do"
+	   //3.鍙戦�佸紓姝ヨ姹�(ajax鐨刧et璇锋眰)
+	   $.getJSON(url,params,function(result){//JsonResult
+		   doHandleResponseResult(result)
+	   });
+   }
+   //澶勭悊鏈嶅姟绔殑鍝嶅簲鏁版嵁
+   function doHandleResponseResult(result){
+	     console.log(result);
+		 if(result.state==1){
+		  doSetTableBodyRows(result.data.records);
+		  doSetPagination(result.data);
+		 }else{
+		  alert(result.message);
+		 }
+   }
+   
+   //鍛堢幇褰撳墠椤佃褰�
+   function doSetTableBodyRows(records){
+	   //1.鑾峰彇Tbody瀵硅薄骞舵竻绌�
+	   var tBody=$("#tbodyId");
+	   tBody.empty();
+	   //2.杩唬鏁版嵁骞舵樉绀哄湪tbody涓�
+	   for(var i in records){
+		  //2.1 鏋勫缓tr瀵硅薄
+		  var tr=$("<tr></tr>");
+		  tr.data("rowData",records[i]);
+		  //2.2 鏋勫缓澶氫釜td瀵硅薄
+		  var tds=doCreateTds(records[i]);
+		  //2.3 灏唗d杩藉姞鍒皌r涓�
+		  tr.append(tds);
+		  //2.4 灏唗r杩藉姞鍒皌body涓�
+		  tBody.append(tr);
+	   }
+   }
+   function doCreateTds(row){
+	   var tds=
+		"<td><input type='checkbox' class='cBox' name='cItem' value='"+row.id+"'></td>"+
+		"<td>"+row.name+"</td>"+
+		"<td>"+row.value+"</td>"+
+		"<td>"+new Date(row.createdTime).toLocaleDateString()+"</td>"+
+		"<td>"+new Date(row.modifiedTime).toLocaleDateString()+"</td>"+
+		"<td><button type='button' class='btn btn-default btn-update'>update</button></td>";
+	   return tds;
+   }
+</script>
+
+
+
+
+
+
+
+
+
+
+

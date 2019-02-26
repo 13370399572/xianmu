@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mybatis中的映射文件:内部要定义sql映射 -->
+<mapper namespace="com.jt.sys.dao.SysRoleDao">
+ <select id="findPageObjects"
+            resultType="com.jt.sys.entity.SysRole">
+          select *
+          from sys_roles
+          <include refid="queryWhereId"/>
+          order by createdTime desc
+limit #{startIndex},#{pageSize}
+    </select>
+    <select id="getRowCount"
+            resultType="int">
+          select count(*)
+          from sys_roles
+          <include refid="queryWhereId"/>
+</select>
+ <sql id="queryWhereId">
+          <where>
+            <if test="name!=null and name!=''">
+               name like concat("%",#{name},"%")
+            </if>
+          </where>
+    </sql>
+    <delete
+     id="deleteObject">
+     	delete from sys_roles where id=#{id}
+     </delete>
+     <insert id="insertObject"
+      parameterType="com.jt.sys.entity.SysRole"
+      useGeneratedKeys="true"
+      keyProperty="id">
+       insert into sys_roles 
+         (id,name,note,createdTime,modifiedTime,
+         createdUser,modifiedUser) 
+         values
+         (null,#{name},#{note},now(),now(),
+         #{createdUser},#{modifiedUser})
+     </insert> 
+     <select id="findObjectById"
+         resultMap="roleMenuResult">
+         select id,name,note from sys_roles where id=#{id}
+         </select>
+         <resultMap type="com.jt.common.vo.SysRoleMenuResult"
+          id="roleMenuResult">
+          <association property="role" javaType="com.jt.sys.entity.SysRole" >
+          <id property="id" column="id"/>
+          <result property="name" column="name"/>
+          <result property="note" column="note"/>
+          </association>
+          <collection property="menuIds"
+                       column="id"
+                       select="com.jt.sys.dao.SysRoleMenuDao.findMenuIdsByRoleId"></collection>
+          </resultMap>
+          <update id="updateObject">
+          update sys_roles
+          <set>
+          <if test="name!=null and name!=''">
+          name=#{name},
+          </if>
+          <if test="note!=null and note!=''">
+          note=#{note},
+          </if>
+        <if test="modifiedUser!=null and modifiedUser!=''">
+             modifiedUser=#{modifiedUser},
+         </if>
+             modifiedTime=now()
+         </set>
+         where id=#{id}
+          
+          </update>
+          <select id="findObjects" resultType="com.jt.common.vo.CheckBox">
+          select id ,name from sys_roles
+          </select>
+</mapper>

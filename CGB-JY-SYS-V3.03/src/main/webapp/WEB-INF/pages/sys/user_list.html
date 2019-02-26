@@ -1,0 +1,236 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">用户管理</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="用户名">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-add">添加</button>
+							<button type="button" class="btn btn-default btn-update">修改</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>用户名</th>
+							<th>部门</th>
+							<th>邮箱</th>
+							<th>手机号</th>
+							<th>状态</th>
+							<th>创建时间</th>
+							<th>修改时间</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId"></tbody>
+				</table>
+			</div>
+			<div id="pageId" class="box-footer clearfix">
+			</div>
+			<!-- /.box-body -->
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+  $(function(){
+	  
+	   $("#pageId").load("doPageUI.do",doGetObjects);
+	   $(".input-group-btn").on("click",".btn-search",doQueryObjects)
+	   $("#tbodyId").on("click",".btn-valid",doValidById)
+	   $(".input-group-btn").on("click",".btn-add",InsertObjects)
+	   $(".input-group-btn").on("click",".btn-update",doupdatess)
+	   
+  })
+  
+  
+  function InsertObjects(){
+	 if($(this).hasClass("btn-add")){
+	  var title;
+	var  url ="user/doUserEditUI.do"
+	$("#mainContentId").load(url,function(){
+		title="添加用户"
+		$(".box-title").html(title)
+		
+	})
+	 }
+  }
+        
+  function doupdatess(){
+	     var rowData=getObjectzhang();
+	     if(!rowData){
+	    	 alert("请选择一个")
+	    	 return;
+	     }
+	     var id=rowData.id;
+	     console.log("id="+id)
+	     doFindObjectById(id);  
+  }
+  
+     function doFindObjectById(id){
+    	 var url="user/doFindObjectById.do";
+    	 var params={"userId":id};
+    	 $.post(url,params,function(data){
+    		 if(data.state==1){
+    			 console.log("data="+data.data)
+    			 $("#mainContentId").data("zhangbingxin",data.data);
+    			 doxiugaiyonghu()
+    			           
+    		 }else{
+    			 alert(data.message);
+    		 }
+    	 })
+    	 
+     }
+  
+  
+  
+  function	doxiugaiyonghu(){
+	   var url ="user/doUserEditUI.do"
+		   $("#mainContentId").load(url,function(){
+			 var title="修改用户"
+			 $(".box-title").html(title)
+		 })
+  }
+  
+  
+  
+  
+  
+             
+  
+  function getObjectzhang(){
+	  var tr= $("tbody input[type='radio']:checked").parents("tr");
+  	return tr.data("rowData")
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+	   function doValidById(){
+	  var btn=$(this);
+	  var user=btn.parents("tr").data("rowData");
+	  var id=user.id
+	  var valid=user.valid
+	  var url="user/doValidById.do"
+	  //与获取的数据相反
+	  var params={"id":id,"valid":valid?0:1}
+	  $.post(url,params,function(data){
+		if(data.state==1){
+			alert("修改成功")
+			//doGetObjects();
+		doEditRow(btn,valid?0:1) 
+		}  else{
+			alert("您没有此权限")
+		}
+	  })
+  }
+  
+  function doEditRow(btn,valid){
+	   //1.修改按钮上的内容
+	   $(btn).html(valid?"启用":"禁用");
+	   //2.修改tr中第5个td中的内容(查询API文档)
+	   var tr=$(btn).parents("tr");
+	   tr.find("td:eq(5)").text(valid?"禁用":"启用");
+	   //3.获取当前行tr对象，然后重新绑定新的值
+	   var rowData=tr.data("rowData")
+	   rowData.valid=valid;
+	   tr.data("rowData",rowData);
+  }
+  
+  
+  
+  
+  
+  
+  function doQueryObjects(){
+	$("#pageId").data("pageCurrent",1);
+	
+	doGetObjects()
+  }
+  
+  function doGetObjects(){
+	  var url="user/doFindPageObjects.do";
+	   var pageCurrent=$("#pageId").data("pageCurrent");
+	   if(!pageCurrent)pageCurrent=1;
+	   
+	
+	   var params={"pageCurrent":pageCurrent}
+	   var username=$("#searchNameId").val();
+	   if(username)params.username=username
+	   $.getJSON(url,params,function(data){
+    	   doHandleResponseResult(data);
+       });
+       
+   }
+      
+      
+       
+        function doHandleResponseResult(data){
+        	if(data.state==1){
+        		doSetTableBodyRows(data.data.records);
+        		doSetPagination(data.data);
+        	}else{
+        		alert(data.messages)
+        	}
+        }
+        function doSetTableBodyRows(records){
+     	   //1.获取body对象,并清空内容
+     	   var tBody=$("#tbodyId");
+     	   tBody.empty();
+     	   //2.迭代records元素,将内容添加到body
+     	   for(var i in records){
+     		   //2.1.创建tr对象
+     		   var tr=$("<tr></tr>");
+     		   tr.data("rowData",records[i]);
+     		   //2.2创建td元素
+     		   var tds=doCreateTds(records[i]);
+     		   //2.3将tr追加到tr中
+     		   tr.append(tds);
+     		   //2.4将tr追加到tbody中
+     		   tBody.append(tr);
+     	   }
+        }
+           function doCreateTds(data){
+        	  console.log(data.valid)
+    var tds=  "<td><input type='radio' name='checkItem' value ='"+data.id+"'/></td>"+
+      "<td>"+data.username+"</td>"+
+      "<td>"+data.sysDept.name+"</td>"+
+      "<td>"+data.email+"</td>"+
+      "<td>"+data.mobile+"</td>"+
+      "<td>"+(data.valid?'启用':'禁用')+"</td>"+
+      "<td>"+new Date(data.createdTime).toLocaleString()+"</td>"+
+      "<td>"+new Date(data.modifiedTime).toLocaleString()+"</td>"+
+      "<td><button type='button' class='btn btn-default btn-valid'>"+(data.valid?'禁用':'启用')+"</button></td>";
+      return tds;
+           }
+</script>
+
+
+
+

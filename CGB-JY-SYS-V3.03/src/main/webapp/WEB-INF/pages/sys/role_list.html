@@ -1,0 +1,268 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">角色管理</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="角色名">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-add">添加</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<form>
+				  <table class="table table-hover">
+					<thead>
+						<tr>
+						    <th>序号</th>
+							<th>角色名称</th>
+							<th>备注</th>
+							<th>创建时间</th>
+							<th>修改时间</th>
+							<th>创建用户</th>
+							<th>修改用户</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+					</tbody>
+				  </table>
+				</form>
+			</div>
+			<!-- /.box-body -->
+			<div id="pageId" class="box-footer clearfix">
+            </div>
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+  $(function(){
+	  $("#pageId").load("doPageUI.do",function(){
+		  doGetObjects();
+	  })
+	  $(".input-group-btn").on("click",".btn-search",doQueryObjects)
+	
+	  $("#mainContentId").on("click",".btn-delete",doDeleteObject)
+	  $(".input-group-btn").on("click",".btn-add",doroleinsertObject)
+	/*   $(".input-group-btn").on("click",".btn-") */
+	  $("#mainContentId").on("click",".btn-update",zhangbingxing)
+	 
+  })
+    /* function zhangbingxin(){
+	  var  id=$(this).parents("tr").data("id")
+	   $("#mainContentId").data("id",id)
+	   zhangbingxingwudi(id)
+	   var title="修改角色";
+	       var url="role/doRoleEditUI.do";
+        	  $("#mainContentId").load(url,function(){
+        		  $(".box-title").html(title);
+        	  })
+  } */
+       
+     function zhangbingxing(){
+	  if($(this).hasClass("btn-update")){
+		 var title="修改角色";
+		  var  id=$(this).parents("tr").data("id")
+		    $("#mainContentId").data("id",id)
+		        zhangbingxingwudi(id)
+		        loadPageUI(title);
+	  }
+  } 
+      function zhangbingxingwudi(id){
+    	  var url="role/doFindObjectById.do";
+    	debugger;
+    	var params={"id":id}
+    	  console.log(id)
+    	   // debugger;
+    	  $.post(url,params,function(data){
+    		  if(data.state==1){
+    			  $("#mainContentId").data("zhang",data.data)
+    			  console.log(data.data)
+    			//  loadPageUI(title);
+    		  }else{
+    			  alert("查询失败")
+    		  }
+    	  })
+      } 
+  
+      function doroleinsertObject(){
+	  
+	   
+	   
+		   var title;
+			  if($(this).hasClass("btn-add")){
+				
+				  title="添加角色";
+				  loadPageUI(title);
+			  }else{
+				  debugger;
+				  title="修改角色";
+				   }
+			
+	       
+  }
+  
+          function loadPageUI(title){
+        	  var url="role/doRoleEditUI.do";
+        	  $("#mainContentId").load(url,function(){
+        		  $(".box-title").html(title);
+        	  })
+
+          }
+  function   doDeleteObject(){
+	  debugger;
+	  var  id=$(this).parents("tr").data("id")
+	  
+	    params={"id":id}
+	    url ="role/doDeleteObject.do"
+	  $.post(url,params,function(data){
+		  if(data.state==1){
+			  alert(data.message);
+			  doGetObjects()
+		  }else{
+			  alert("删除失败")
+		  }
+	  })
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  function doQueryObjects(){
+	  $("#pageId").data("pageCurrent",1)
+	  doGetObjects();
+  }
+        /*  function doGetObject(){
+        	url="role/doFindPageObjects.do"
+        		var pageCurrent=$("#pageId").data("pageCurrent")
+        		if(!pageCurrent)pageCurrent=1;
+        	params={"pageCurrent":pageCurrent}
+        	
+        	params.name=$("#searchNameId").val();
+        	console.log("params",params)
+        	
+        	$.post(url,params,function(data){
+        		 doHandleResponseResult(data);	
+        		
+        	})
+        	
+        }  
+   */
+  
+  
+  function doGetObjects(){
+	   
+	  var url="role/doFindPageObjects.do"
+	  var pageCurrent=$("#pageId").data("pageCurrent")
+	  if(!pageCurrent)pageCurrent=1;
+	  var params={"pageCurrent":pageCurrent};
+	  var name= $("#searchNameId").val();
+	  if(name)params.name=name
+	  $.getJSON(url,params,function(data){
+		  console.log("data",data.data)
+		  doHandleResponseResult(data);
+		  
+		  
+	  })
+  }
+  
+  function doHandleResponseResult(data){
+	  if(data.state==1){
+		  doSetTableBodyRows(data.data.records);
+		    doSetPagination(data.data);
+	  }else{
+		  doSetTableBodyErrors(data.message);
+	  }
+  };
+  
+  
+      
+  function doSetTableBodyErrors(message){
+	   //获取body对象并清空
+	   var tBody=$("#tbodyId");
+	   tBody.empty();
+	   //创建tr对象
+	   var tr=$("<tr></tr>");
+	   //创建td对象
+	   //var len=$("table thead").find("tr").find("th").length;
+	   var len=$("table th").length;
+	   var td=$("<td></td>");
+	   td.prop("colspan",len);
+	   td.append(message);
+	   tr.append(td);
+	   //将tr追加到tbody
+	   tBody.append(tr);
+  }
+
+  
+  
+        function  doSetTableBodyRows(data){
+        	var tBody=$("#tbodyId");
+        	tBody.empty();
+        	for(var i in data){
+        		var tr=$("<tr></tr>")
+        		tr.data("id",data[i].id)
+        		var tds=doCreatedTds(data[i]);
+        	     tr.append(tds);
+        	      // $()data("id",data.id)
+        	     tBody.append(tr);
+        	    //  $("#zhang").data("id",data[i].id);
+        	      console.log("id",data[i].id)
+        	}
+        }
+          
+        function doCreatedTds(data){
+        	var tds=
+        		"<td>"+data.id+"</td>"+
+        		"<td>"+data.name+"</td>"+
+            "<td>"+data.note+"</td>"+
+            "<td>"+new Date(data.createdTime).toLocaleString()+"</td>"+
+            "<td>"+new Date(data.modifiedTime).toLocaleString()+"</td>"+
+            "<td>"+data.createdUser+"</td>"+
+            "<td>"+data.modifiedUser+"</td>"+
+            "<td><a class='btn-delete'>delete</a>"+
+            "&nbsp;<a class='btn-update'>update</a></td>";
+            return tds;
+        }
+</script>
+
+
+
+
+
+
+
+
+
+
+

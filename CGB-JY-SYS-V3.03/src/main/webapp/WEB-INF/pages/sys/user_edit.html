@@ -1,0 +1,271 @@
+<!-- Horizontal Form -->
+ <div class="box box-info">
+      <div class="box-header with-border">
+        <h3 class="box-title">添加用户</h3>
+      </div>
+      <!-- /.box-header -->
+      <!-- form start -->
+      <form class="form-horizontal">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="usernameId" class="col-sm-2 control-label">用户名</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="usernameId">
+            </div>
+          </div>
+          <div class="form-group" id="pwdDiv">
+            <label for="passwordId" class="col-sm-2 control-label">密码</label>
+
+            <div class="col-sm-10">
+              <input type="password" class="form-control"  id="passwordId">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="deptId" class="col-sm-2 control-label">所属部门</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control load-sys-dept" readonly="readonly" id="deptId" placeholder="上级部门">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="emailId" class="col-sm-2 control-label">邮箱</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control"  id="emailId">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="phoneId" class="col-sm-2 control-label">手机号</label>
+              <div class="col-sm-10">
+              <input type="text" class="form-control"  id="phoneId">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rolesId" class="col-sm-2 control-label">角色</label>
+            <div class="col-sm-10" id="rolesId">
+              
+            </div>
+          </div>
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          <button type="button" class="btn btn-default btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-info pull-right btn-save">Save</button>
+        </div>
+        <!-- /.box-footer -->
+      </form>
+     <div class="layui-layer layui-layer-page layui-layer-molv layer-anim" id="treeLayer" type="page" times="2" showtime="0" contype="object"
+		style="z-index:59891016; width: 300px; height: 450px; top: 100px; left: 500px; display:none">
+		<div class="layui-layer-title" style="cursor: move;">选择部门</div>
+		<div class="layui-layer-content" style="height: 358px;">
+			<div style="padding: 10px;" class="layui-layer-wrap">
+				<ul id="zTreeId" class="ztree"></ul>    <!-- 动态加载树 -->
+			</div>
+		</div>
+		<span class="layui-layer-setwin"> <a class="layui-layer-ico layui-layer-close layui-layer-close1 btn-cancel" ></a></span>
+		<div class="layui-layer-btn layui-layer-btn-">
+			<a class="layui-layer-btn0 btn-confirm">确定</a>
+			<a class="layui-layer-btn1 btn-cancel">取消</a>
+	     </div>
+      </div>
+    </div>
+<script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+<script type="text/javascript" src="bower_components/layer/layer.js"></script>
+<script type="text/javascript">
+ var zTree; 
+ //初始化zTree时会用到
+ var setting = {
+	data : {
+		simpleData : {
+			enable : true,
+			idKey : "id",  //节点数据中保存唯一标识的属性名称
+			pIdKey : "parentId",  //节点数据中保存其父节点唯一标识的属性名称
+			rootPId : null  //根节点id
+		}//json 格式javascript对象
+	}
+ }//json 格式的javascript对象
+ $(function(){
+	 doLoadSysRoles();
+	 //代码龙禹
+	// if( $("#mainContentId").data("zhangbingxin")){
+		// updatezhangbing();
+	 //}
+	 $(".col-sm-10").on("click",".load-sys-dept",doLoadZTreeNodes)
+	 $(".layui-layer-btn").on("click",".btn-confirm",doconfirm)
+	 $(".layui-layer-btn").on("click",".btn-cancel",docancel)
+	 $(".layui-layer-setwin").on("click",".btn-cancel",docancel)
+	 $(".box-footer").on("click",".btn-cancel",doCancelObjects)
+	 $(".box-footer").on("click",".btn-save",dosave)
+ })
+  // function updatezhangbing(){
+	 
+ //}
+ 
+ 
+ 
+ 
+ 
+ 
+ function dosave(){
+	 
+	 var data=$("#mainContentId").data("zhangbingxin")
+	 params={
+			 "username":$("#usernameId").val(),
+		      "password":$("#passwordId").val(),
+		      "email":$("#emailId").val(),
+		      "mobile":$("#phoneId").val(),
+	          "deptId":$("#deptId").data("deptId")
+	 }
+	 if(data){
+		 params.id=data.user.id;
+	 }
+	 var roleIds=new Array();
+	 $("#rolesId input[type='checkbox']").each(function(){
+		 if($(this).prop("checked")){
+			 roleIds.push($(this).val())
+		 }
+	 })
+	 debugger;
+	 console.log("roleIds="+roleIds)
+	   params.roleIds= roleIds.toString();
+	 console.log("params="+params)
+	 var insertUrl="user/doSaveObject.do";
+	 var updateUrl="user/doUpdateObject.do"
+	 url=data ? updateUrl:insertUrl;
+	 $.post(url,params,function(data){
+		 if(data.state==1){
+			 alert(data.message);
+			 doCancelObjects()
+		 }else{
+			 alert(data.message);
+		 }
+	 })
+ }
+ 
+ 
+ 
+ 
+ function doCancelObjects(){
+	 $("#mainContentId").load("user/doUserListUI.do")
+	 
+ $("#mainContentId").removeData();
+	
+ }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ function doconfirm(){
+	var zTree= $("#mainContentId").data("zTree");
+	console.log("zTree="+zTree)
+	 var nodes = zTree.getSelectedNodes();
+	 if(nodes.length!=0){
+		 node=nodes[0];
+		 $("#deptId").val(node.name);
+		  $("#deptId").data("deptId",node.id)
+		  docancel()
+	 }
+	 
+ }
+ function docancel(){
+	 debugger;
+	 $("#treeLayer").css("display","none")
+ }
+ 
+ 
+ function doLoadZTreeNodes(){
+	 var url="dept/doFindZtreeDeptNodes.do"
+	 $("#treeLayer").css("display","block");
+	 $.post(url,function(data){
+		 if(data.state==1){
+			var zTree=$.fn.zTree.init(
+				$("#zTreeId"),
+				setting,
+				data.data
+			) 
+			$("#mainContentId").data("zTree",zTree);
+			
+			
+		 }else{
+			  alert(data.message);
+		 }
+	 })
+	 
+ }
+ 
+ 
+ 
+ 
+ 
+  function doLoadSysRoles(){
+	 var url="role/doFindObjects.do"
+		 $.getJSON(url,function(data){
+			 if(data.state==1){
+				 //初始化角色信息
+				doInitDivSysRoles(data.data);
+				 //修改代码
+				doInitEditPageData();
+			 }else{
+				alert(data.message);
+			 }
+		 })
+ }
+  
+   function doInitEditPageData(){
+	   var data=$("#mainContentId").data("zhangbingxin");
+	   console.log("rowData="+data)
+	   if(!data){
+		   return;
+	   }
+	   //var user =data.user;
+	   //console.log("user="+user);
+	   //debugger;
+	   $("#usernameId").val(data.user.username);
+	   $("#deptId").val(data.user.sysDept.name);
+	   $("#deptId ").data("deptId",data.user.sysDept.id);
+	   	 $("#emailId").val(data.user.email);
+	   	 $("#phoneId").val(data.user.mobile);
+	   	 
+	   	 var roleIds=data.roleIds.toString();
+	   	debugger;
+	   	 console.log("roleIds="+roleIds);
+	   	 
+	   	 for(var i in roleIds){
+	   		 $("#rolesId input[value='"+roleIds[i]+"']").prop("checked",true);
+	   	 }
+	   
+   }
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ function   doInitDivSysRoles(data){
+	 var div=$("#rolesId");
+	 var checkBox=
+	"<input type='checkbox' name='roleItem' value='[id]'>[name]</input>";
+	 for(var i in data){
+		 console.log("data="+data)
+		 debugger;
+		 div.append(
+		 checkBox.replace("[id]",data[i].id)
+		           .replace("[name]",data[i].name));
+	 }
+	 
+ }
+ 
+</script>
+    
+    
+    
+    
+    
+    
+    

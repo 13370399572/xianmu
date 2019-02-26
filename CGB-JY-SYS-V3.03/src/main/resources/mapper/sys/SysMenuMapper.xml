@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mybatis中的映射文件:内部要定义sql映射 -->
+<mapper namespace="com.jt.sys.dao.SysMenuDao">
+<select id="findObject" resultType="map">
+select c.* ,p.name parentName from sys_menus c left join sys_menus p
+on c.parentId=p.id
+</select>
+  <select id="getChildCount" resultType="int">
+     select count(*) from sys_menus where parentId=#{id}
+  </select>
+   <delete id="deleteObject" >
+   delete from sys_menus where id=#{id}
+   </delete>
+   <select  id="findZtreeMenuNodes" resultType="com.jt.common.vo.Node">
+   select id ,name,parentId from sys_menus
+   </select>
+   
+   <insert id="insertObject">
+   insert into sys_menus (name,url,type,sort,note,parentId,permission,
+createdTime,modifiedTime,createdUser,modifiedUser)
+   values (#{name},#{url},#{type},#{sort},#{note},#{parentId},#{permission},
+now(),now(),#{createdUser},#{modifiedUser})
+   </insert>
+   <update id="updateObjects">
+   update sys_menus
+   set
+   name=#{name},
+           type=#{type},
+           sort=#{sort},
+           url=#{url},
+           parentId=#{parentId},
+           permission=#{permission},
+           modifiedUser=#{modifiedUser},
+           modifiedTime=now()
+           where id=#{id}
+   
+   </update>
+   <select id="findPermissions" resultType="string">
+   select permission from sys_menus where id in
+   <foreach collection="menuIds"
+   open="("
+   close=")"
+   separator=","
+   item="item">
+   #{item}
+   </foreach>
+   </select>
+</mapper>

@@ -1,0 +1,199 @@
+<!-- Horizontal Form -->
+ <div class="box box-info">
+      <div class="box-header with-border">
+        <h3 class="box-title">添加角色</h3>
+      </div>
+      <!-- /.box-header -->
+      <!-- form start -->
+      <form class="form-horizontal">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="nameId" class="col-sm-2 control-label">名称</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="name" id="nameId" placeholder="名称">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="noteId" class="col-sm-2 control-label">描述</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="note" id="noteId" placeholder="描述">
+            </div>
+          </div>
+          <div class="form-group">
+				<label class="col-sm-2 control-label">授权</label>
+				<div class="col-sm-10">
+						<ul id="menuTree" class="ztree"></ul>
+				</div>
+		  </div>
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          <button type="button" class="btn btn-default btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-info pull-right btn-save">Save</button>
+        </div>
+        <!-- /.box-footer -->
+      </form>
+    </div>
+    <script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript">
+    var zTree; 
+    var setting = {
+   	data : {
+   	    simpleData : {
+   			enable : true,
+   			idKey : "id",  //节点数据中保存唯一标识的属性名称
+   			pIdKey : "parentId",  //节点数据中保存其父节点唯一标识的属性名称
+   			rootPId : null  //根节点id
+   		}
+   	},
+   	check:{
+   		enable:true,
+   		nocheckInherit:true
+   	}//此配置提供复选框操作(可查官方zTree)
+    }
+    $(function(){
+    	doLoadSysMenus()
+    	$(".box-footer").on("click",".btn-save",doinsertObject)
+    	$(".box-footer").on("click",".btn-cancel",domainObject)
+       
+    	if($("#mainContentId").data("zhang")){
+    		doUpdatarole()
+    	}
+    	//$("#mainContentId").removeData();
+    	
+    })
+         function doUpdatarole(){
+    	
+    var data=$("#mainContentId").data("zhang")
+    	  $("#nameId").val(data.role.name),
+		  $("#noteId").val(data.role.note)
+        doLoadSysMenus()
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+       function domainObject(){
+    	   
+       url="role/doRoleListUI.do"
+    	$("#mainContentId").load(url,function(){
+    		$("#mainContentId").removeData();
+    	})
+    	
+    	
+    }   
+    
+    
+       function doinsertObject(){
+    	urlinsert ="role/doSaveObject.do"
+    	urlupdate="role/doUpdateObject.do"
+    	data=$("#mainContentId").data("zhang")
+    	   url= data ? urlupdate : urlinsert 
+    	params=doGetEditFormData();	
+    	debugger;
+$.post(url,params,function(data){
+	debugger;
+	if(data.state==1){
+		alert(data.message)
+		
+		domainObject()
+		
+	}else{
+		alert(data.message)
+	}
+})
+    }
+    
+      function doGetEditFormData(){
+    	  var params={
+    			  
+    			  name:$("#nameId").val(),
+    			  note:$("#noteId").val()
+    	  }     
+    	       var id= $("#mainContentId").data("id");
+    	     
+    	     console.log("id"+id)
+    	  if(id){
+    		  params.id=id
+    	  }
+    	       var menuIds=[]
+    	
+    	   
+    	  zTree=$("#mainContentId").data("zTree")
+    	  console.log(zTree);
+    	 
+    	  
+    	  var checkedNodes=zTree.getCheckedNodes(true);
+    	  
+    	  for(var i in checkedNodes){
+    		  menuIds.push(checkedNodes[i].id)
+    	  }
+    	     params.menuIds=menuIds.toString();
+    	      debugger;
+    	      console.log("params"+params)
+    	      console.log("menuIds"+menuIds.toString())
+    	   return params;
+      }
+    
+    
+    
+    
+    
+    
+    function doLoadSysMenus(){
+    	url="menu/doFindZtreeMenuNodes.do";
+    	$.getJSON(url,function(data){
+    		var zTree=$.fn.zTree.init(
+    		$("#menuTree"),
+    		setting,
+    		data.data
+    		)
+    		 
+    		if($("#mainContentId").data("zhang")){
+    			//debugger;
+    			//张开
+    			zTree.expandAll(true);
+    			var data=$("#mainContentId").data("zhang")
+    			console.log("data="+data)
+    			var menuIds =[];
+    			var menuIds =data.menuIds;
+    			for(var i=0;i<menuIds.length;i++){
+    				var node=zTree.getNodeByParam("id",menuIds[i])
+    				//选中的是true 没选择在的是false
+    				zTree.checkNode(node,true,false);
+    			}
+    			
+    		}
+    	
+    		$("#mainContentId").data("zTree",zTree);
+    	})
+    	
+    }
+   
+</script>
+    
+    
+    
+    
+    
+    
+    
+    
